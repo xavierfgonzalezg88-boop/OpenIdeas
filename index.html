@@ -95,4 +95,375 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OpenIdeas — Modelo de Ahorro</title>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7f8f7;
+      --surface: #ffffff;
+      --surface-soft: #f2f4f3;
+      --panel: #f3f4f6;
+
+      --green-900: #1d4f2c;
+      --green-800: #2f6b2f;
+      --green-700: #4f8f2f;
+      --green-600: #7fb428;
+      --green-500: #8bc34a;
+      --green-300: #cfe6b8;
+      --green-200: #dcefc9;
+      --green-100: #eef7e6;
+
+      --text: #1f2937;
+      --text-soft: #4b5563;
+      --text-muted: #8b95a1;
+
+      --warning-bg: #fff8e8;
+      --warning-border: #f2cf73;
+      --warning-text: #9a5a00;
+
+      --shadow-soft: 0 6px 18px rgba(18, 43, 28, 0.06);
+      --shadow-card: 0 4px 14px rgba(18, 43, 28, 0.05);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #20a84a;
+      cursor: pointer;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 16px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const fmt = (n) => Math.round(n).toLocaleString("es-AR");
+
+    function App() {
+      const [personas, setPersonas] = useState(600);
+      const [equipos, setEquipos] = useState(30);
+      const [problemasXequipoXmes, setProblemasXequipoXmes] = useState(1);
+      const [horasXproblema, setHorasXproblema] = useState(8);
+      const [pctDuplicados, setPctDuplicados] = useState(30);
+      const [pctCaptura, setPctCaptura] = useState(50);
+      const [costoHora, setCostoHora] = useState(25);
+
+      const problemasTotalesMes = equipos * problemasXequipoXmes;
+      const duplicadosMes = problemasTotalesMes * (pctDuplicados / 100);
+      const horasDuplicadasMes = duplicadosMes * horasXproblema;
+      const horasAhorradasMes = horasDuplicadasMes * (pctCaptura / 100);
+      const horasAhorradasAnio = horasAhorradasMes * 12;
+      const ahorroAnio = horasAhorradasAnio * costoHora;
+
+      const Slider = ({ label, value, setter, min, max, step = 1, suffix = "", hint }) => (
+        <div style={{ marginBottom: 22 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 16,
+              marginBottom: 8
+            }}
+          >
+            <span
+              style={{
+                fontSize: 15,
+                color: "var(--text)",
+                fontWeight: 500
+              }}
+            >
+              {label}
+            </span>
+
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: "#16a34a",
+                whiteSpace: "nowrap"
+              }}
+            >
+              {value}{suffix}
+            </span>
+          </div>
+
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => setter(Number(e.target.value))}
+          />
+
+          {hint && (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--text-muted)",
+                marginTop: 6
+              }}
+            >
+              {hint}
+            </p>
+          )}
+        </div>
+      );
+
+      const Metric = ({ label, value, sub, highlight }) => (
+        <div
+          style={{
+            background: highlight
+              ? "linear-gradient(135deg, #16a34a 0%, #1f9d45 100%)"
+              : "var(--surface-soft)",
+            border: `1px solid ${highlight ? "#179244" : "var(--green-200)"}`,
+            borderRadius: "var(--radius-md)",
+            padding: "18px 20px",
+            textAlign: "center",
+            boxShadow: highlight ? "var(--shadow-soft)" : "none",
+            minHeight: 104,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center"
+          }}
+        >
+          <div
+            style={{
+              fontSize: highlight ? 28 : 24,
+              fontWeight: 800,
+              color: highlight ? "#ffffff" : "var(--green-800)",
+              lineHeight: 1.1,
+              marginBottom: 6
+            }}
+          >
+            {value}
+          </div>
+
+          <div
+            style={{
+              fontSize: 14,
+              color: highlight ? "#f0fff4" : "var(--green-900)",
+              lineHeight: 1.25
+            }}
+          >
+            {label}
+          </div>
+
+          {sub && (
+            <div
+              style={{
+                fontSize: 12,
+                color: highlight ? "#d7f7df" : "#39b54a",
+                marginTop: 4,
+                lineHeight: 1.2
+              }}
+            >
+              {sub}
+            </div>
+          )}
+        </div>
+      );
+
+      return (
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #18863a 0%, #177f38 100%)",
+              borderRadius: "var(--radius-lg)",
+              padding: "18px 22px",
+              marginBottom: 20,
+              boxShadow: "var(--shadow-soft)"
+            }}
+          >
+            <h2
+              style={{
+                color: "#ffffff",
+                fontSize: 18,
+                fontWeight: 800,
+                marginBottom: 4
+              }}
+            >
+              💡 OpenIdeas — Modelo de Ahorro Estimado
+            </h2>
+
+            <p
+              style={{
+                color: "#e5f7e8",
+                fontSize: 13
+              }}
+            >
+              Ajustá los supuestos según tu contexto
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+              marginBottom: 20
+            }}
+          >
+            <Metric
+              label="Problemas duplicados / mes"
+              value={fmt(duplicadosMes)}
+              sub={`de ${fmt(problemasTotalesMes)} totales`}
+            />
+            <Metric
+              label="Horas duplicadas / mes"
+              value={fmt(horasDuplicadasMes)}
+              sub="sin OpenIdeas"
+            />
+            <Metric
+              label="Horas ahorradas / año"
+              value={fmt(horasAhorradasAnio)}
+              sub={`con ${pctCaptura}% de captura`}
+            />
+            <Metric
+              label="Ahorro estimado / año"
+              value={`USD ${fmt(ahorroAnio)}`}
+              highlight
+            />
+          </div>
+
+          <div
+            style={{
+              background: "#f3f4f6",
+              border: "1px solid #d9dee5",
+              borderRadius: "var(--radius-lg)",
+              padding: 20,
+              marginBottom: 18,
+              boxShadow: "var(--shadow-card)"
+            }}
+          >
+            <h3
+              style={{
+                fontSize: 15,
+                color: "#111827",
+                marginBottom: 18,
+                fontWeight: 800
+              }}
+            >
+              ⚙️ Supuestos ajustables
+            </h3>
+
+            <Slider
+              label="Personas en la gerencia"
+              value={personas}
+              setter={setPersonas}
+              min={100}
+              max={2000}
+              step={50}
+            />
+
+            <Slider
+              label="Equipos / células"
+              value={equipos}
+              setter={setEquipos}
+              min={5}
+              max={60}
+              hint="Cuántos equipos trabajan en paralelo"
+            />
+
+            <Slider
+              label="Problemas nuevos por equipo por mes"
+              value={problemasXequipoXmes}
+              setter={setProblemasXequipoXmes}
+              min={1}
+              max={10}
+            />
+
+            <Slider
+              label="Horas invertidas por problema"
+              value={horasXproblema}
+              setter={setHorasXproblema}
+              min={2}
+              max={40}
+              suffix="h"
+            />
+
+            <Slider
+              label="% problemas ya resueltos en otro equipo"
+              value={pctDuplicados}
+              setter={setPctDuplicados}
+              min={5}
+              max={70}
+              suffix="%"
+              hint="Benchmark: 20–40% (McKinsey, Deloitte)"
+            />
+
+            <Slider
+              label="% duplicados que OpenIdeas evitaría"
+              value={pctCaptura}
+              setter={setPctCaptura}
+              min={10}
+              max={90}
+              suffix="%"
+            />
+
+            <Slider
+              label="Costo hora promedio (USD)"
+              value={costoHora}
+              setter={setCostoHora}
+              min={10}
+              max={100}
+              step={5}
+              suffix=" USD"
+            />
+          </div>
+
+          <div
+            style={{
+              background: "var(--warning-bg)",
+              border: "1px solid var(--warning-border)",
+              borderRadius: 12,
+              padding: 14,
+              fontSize: 12,
+              color: "var(--warning-text)",
+              lineHeight: 1.45
+            }}
+          >
+            <strong>📌 Nota metodológica:</strong> Supuestos conservadores basados en benchmarks
+            de gestión del conocimiento (McKinsey Global Institute, Deloitte Insights). Se
+            recomienda validar con datos reales en un piloto.
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
 </html>
+

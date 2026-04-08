@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OpenIdeas — Modelo de Ahorro</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0fdf4; min-height: 100vh; padding: 20px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const fmt = (n) => Math.round(n).toLocaleString("es-AR");
+
+function App() {
+  const [personas, setPersonas] = useState(600);
+  const [equipos, setEquipos] = useState(30);
+  const [problemasXequipoXmes, setProblemasXequipoXmes] = useState(1);
+  const [horasXproblema, setHorasXproblema] = useState(8);
+  const [pctDuplicados, setPctDuplicados] = useState(30);
+  const [pctCaptura, setPctCaptura] = useState(60);
+  const [costoHora, setCostoHora] = useState(25);
+
+  const problemasTotalesMes = equipos * problemasXequipoXmes;
+  const duplicadosMes = problemasTotalesMes * (pctDuplicados / 100);
+  const horasDuplicadasMes = duplicadosMes * horasXproblema;
+  const horasAhorradasMes = horasDuplicadasMes * (pctCaptura / 100);
+  const horasAhorradasAnio = horasAhorradasMes * 12;
+  const ahorroAnio = horasAhorradasAnio * costoHora;
+
+  const Slider = ({ label, value, setter, min, max, step=1, suffix="", hint }) => (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom: 4 }}>
+        <span style={{ fontSize: 13, color:"#374151", fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color:"#16a34a" }}>{value}{suffix}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => setter(Number(e.target.value))}
+        style={{ width:"100%", accentColor:"#16a34a" }}/>
+      {hint && <p style={{ fontSize: 11, color:"#9ca3af", marginTop: 2 }}>{hint}</p>}
+    </div>
+  );
+
+  const Metric = ({ label, value, sub, highlight }) => (
+    <div style={{
+      background: highlight ? "#16a34a" : "#f0fdf4",
+      border: `1px solid ${highlight ? "#15803d" : "#bbf7d0"}`,
+      borderRadius: 10, padding: "14px 18px", textAlign:"center"
+    }}>
+      <div style={{ fontSize: highlight ? 26 : 22, fontWeight: 800, color: highlight ? "#fff" : "#15803d" }}>{value}</div>
+      <div style={{ fontSize: 12, color: highlight ? "#dcfce7" : "#166534", marginTop: 2 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: highlight ? "#bbf7d0" : "#4ade80", marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 700, margin:"0 auto" }}>
+      <div style={{ background:"#15803d", borderRadius: 12, padding:"16px 20px", marginBottom: 20 }}>
+        <h2 style={{ color:"#fff", fontSize: 18 }}>💡 OpenIdeas — Modelo de Ahorro Estimado</h2>
+        <p style={{ color:"#dcfce7", fontSize: 13, marginTop: 4 }}>Ajustá los supuestos según tu contexto</p>
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 12, marginBottom: 20 }}>
+        <Metric label="Problemas duplicados / mes" value={fmt(duplicadosMes)} sub={`de ${fmt(problemasTotalesMes)} totales`}/>
+        <Metric label="Horas duplicadas / mes" value={fmt(horasDuplicadasMes)} sub="sin OpenIdeas"/>
+        <Metric label="Horas ahorradas / año" value={fmt(horasAhorradasAnio)} sub={`con ${pctCaptura}% de captura`}/>
+        <Metric label="Ahorro estimado / año" value={`USD ${fmt(ahorroAnio)}`} highlight/>
+      </div>
+
+      <div style={{ background:"#f9fafb", border:"1px solid #e5e7eb", borderRadius: 12, padding: 20, marginBottom: 16 }}>
+        <h3 style={{ fontSize: 15, color:"#111827", marginBottom: 16 }}>⚙️ Supuestos ajustables</h3>
+        <Slider label="Personas en la gerencia" value={personas} setter={setPersonas} min={100} max={2000} step={50}/>
+        <Slider label="Equipos / células" value={equipos} setter={setEquipos} min={5} max={60} hint="Cuántos equipos trabajan en paralelo"/>
+        <Slider label="Problemas nuevos por equipo por mes" value={problemasXequipoXmes} setter={setProblemasXequipoXmes} min={1} max={10}/>
+        <Slider label="Horas invertidas por problema" value={horasXproblema} setter={setHorasXproblema} min={2} max={40} suffix="h"/>
+        <Slider label="% problemas ya resueltos en otro equipo" value={pctDuplicados} setter={setPctDuplicados} min={5} max={70} suffix="%" hint="Benchmark: 20–40% (McKinsey, Deloitte)"/>
+        <Slider label="% duplicados que OpenIdeas evitaría" value={pctCaptura} setter={setPctCaptura} min={10} max={90} suffix="%"/>
+        <Slider label="Costo hora promedio (USD)" value={costoHora} setter={setCostoHora} min={10} max={100} step={5} suffix=" USD"/>
+      </div>
+
+      <div style={{ background:"#fffbeb", border:"1px solid #fde68a", borderRadius: 10, padding: 14, fontSize: 12, color:"#92400e" }}>
+        <strong>📌 Nota metodológica:</strong> Supuestos conservadores basados en benchmarks de gestión del conocimiento (McKinsey Global Institute, Deloitte Insights). Se recomienda validar con datos reales en un piloto.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
